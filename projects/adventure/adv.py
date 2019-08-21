@@ -4,6 +4,36 @@ from world import World
 
 import random
 
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def show(self):
+      if len(self.stack) > 0:
+        return self.stack
+      return None
+    def size(self):
+        return len(self.stack)
+
 # Load world
 world = World()
 
@@ -19,11 +49,125 @@ world.loadGraph(roomGraph)
 # UNCOMMENT TO VIEW MAP
 world.printRooms()
 
-player = Player("Name", world.startingRoom)
+player = Player("Lowell", world.startingRoom)
 
 # Fill this out
-traversalPath = []
+traversalPath = ['n']
 
+opposites = { 'n': 's', 'e': 'w', 'w': 'e', 's': 'n' }
+
+visited = { 0: { 'n': 4, 'e': '?', 'w': '?', 's': '?' } }
+path_to_last_room_with_unexploreds = Stack()
+path_to_last_room_with_unexploreds.push(['n'])
+player.travel('n')
+last_move = 'n'
+last_room = 0
+count = 0
+
+while len(visited) < len(roomGraph) and count < 2000:
+
+  count += 1
+  r_id = player.currentRoom.id
+  exits = player.currentRoom.getExits()
+  current_path = path_to_last_room_with_unexploreds.show()
+
+  # If this room hasn't been visited, put it in the visited dictionary
+  if not r_id in visited:
+
+    visited[r_id] = {}
+
+    # Fill in the available rooms
+    for e in exits:
+      visited[r_id][e] = '?'
+
+    # Fill in the id for the previous room because we know it
+    visited[r_id][opposites[last_move]] = last_room
+
+    # If this room is a dead end, move back
+    if len(exits) == 1 and exits[0] == opposites[last_move]:
+
+      if path_to_last_room_with_unexploreds.size() > 0:
+        revert_path = path_to_last_room_with_unexploreds.pop()
+        revert_path.reverse()
+
+        for move in revert_path:
+          last_move = move
+          last_room = player.currentRoom.id
+          traversalPath.append(opposites[move])
+          player.travel(opposites[move])
+
+    # If this is the first time we've been to the room and it isn't a dead end, do stuff
+    else:
+      unexplored_count = 0
+      found_first_unexplored = False
+      for e in visited[r_id]:
+        if visited[r_id][e] == '?':
+          unexplored_count += 1
+          if not found_first_unexplored:
+            found_first_unexplored = True
+            traversalPath.append(e)
+            player.travel(e)
+            visited[r_id][e] = player.currentRoom.id
+            last_move = e
+            last_room = r_id
+
+      # If there's more than one unexplored, need to push a new path to the stack
+      if unexplored_count > 1:
+        path_to_last_room_with_unexploreds.push([last_move])
+
+      # If there are previous rooms with unexplored paths
+      elif unexplored_count == 1 and path_to_last_room_with_unexploreds.size() > 0:
+        old_path = path_to_last_room_with_unexploreds.pop()
+        old_path.append(last_move)
+        path_to_last_room_with_unexploreds.push(old_path)
+
+      # soft dead end
+      else:
+        if path_to_last_room_with_unexploreds.size() > 0:
+          revert_path = path_to_last_room_with_unexploreds.pop()
+          revert_path.reverse()
+          for move in revert_path:
+            last_move = move
+            last_room = player.currentRoom.id
+            traversalPath.append(opposites[move])
+            player.travel(opposites[move])
+
+  # If we've been to this room before, make whichever decisions
+  else:
+    unexplored_count = 0
+    found_first_unexplored = False
+
+    for e in visited[r_id]:
+      if visited[r_id][e] == '?':
+        unexplored_count += 1
+        if not found_first_unexplored:
+          found_first_unexplored = True
+          traversalPath.append(e)
+          player.travel(e)
+          visited[r_id][e] = player.currentRoom.id
+          last_move = e
+          last_room = r_id
+
+    # If there's more than one unexplored, need to push a new path to the stack
+    if unexplored_count > 1:
+      path_to_last_room_with_unexploreds.push([last_move])
+
+    # If there are previous rooms with unexplored paths
+    elif unexplored_count == 1 and path_to_last_room_with_unexploreds.size() > 0:
+      old_path = path_to_last_room_with_unexploreds.pop()
+      old_path.append(last_move)
+      path_to_last_room_with_unexploreds.push(old_path)
+
+    # soft dead end
+    else:
+      if path_to_last_room_with_unexploreds.size() > 0:
+        revert_path = path_to_last_room_with_unexploreds.pop()
+        revert_path.reverse()
+        for move in revert_path:
+          last_move = move
+          last_room = player.currentRoom.id
+          traversalPath.append(opposites[move])
+          player.travel(opposites[move])
 
 
 # TRAVERSAL TEST
