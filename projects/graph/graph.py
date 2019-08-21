@@ -11,48 +11,123 @@ class Graph:
         """
         Add a vertex to the graph.
         """
-        pass  # TODO
+        if not vertex in self.vertices:
+          self.vertices[vertex] = set()
     def add_edge(self, v1, v2):
         """
         Add a directed edge to the graph.
         """
-        pass  # TODO
+        if v1 in self.vertices and v2 in self.vertices:
+          if not v2 in self.vertices[v1]:
+            self.vertices[v1].add(v2)
+        else:
+          print("Need both vertices to exist")
+
     def bft(self, starting_vertex):
         """
         Print each vertex in breadth-first order
         beginning from starting_vertex.
         """
-        pass  # TODO
+
+        q = Queue()
+        visited = [False] * len(self.vertices)
+        q.enqueue(starting_vertex)
+        # print(f"enqueue: {starting_vertex}")
+        visited[starting_vertex-1] = True
+        
+        while q.size() > 0:
+          current = q.dequeue()
+          print(f"dequeue: {current}")
+          for v in self.vertices[current]:
+            if visited[v-1] == False:
+              # print(f"visited: {v}")
+              visited[v-1] = True
+              q.enqueue(v)
+
     def dft(self, starting_vertex):
         """
         Print each vertex in depth-first order
         beginning from starting_vertex.
         """
-        pass  # TODO
+        
+        s = Stack()
+        visited = [False] * len(self.vertices)
+        s.push(starting_vertex)
+        # print(f"enqueue: {starting_vertex}")
+        visited[starting_vertex-1] = True
+        
+        while s.size() > 0:
+          current = s.pop()
+          print(f"pop: {current}")
+          for v in self.vertices[current]:
+            if visited[v-1] == False:
+              # print(f"visited: {v}")
+              visited[v-1] = True
+              s.push(v)
+
+    def dft_actually_recursive(self, starting_vertex, visited):
+        visited[starting_vertex-1] = True
+        print(starting_vertex)
+
+        for v in self.vertices[starting_vertex]:
+          if visited[v-1] == False:
+            self.dft_actually_recursive(v, visited)
+
     def dft_recursive(self, starting_vertex):
         """
         Print each vertex in depth-first order
         beginning from starting_vertex.
         This should be done using recursion.
         """
-        pass  # TODO
+        
+        visited = [False] * len(self.vertices)
+        self.dft_actually_recursive(starting_vertex, visited)
+
     def bfs(self, starting_vertex, destination_vertex):
         """
         Return a list containing the shortest path from
         starting_vertex to destination_vertex in
         breath-first order.
         """
-        pass  # TODO
+        
+        queue = Queue()
+        visited = [False] * len(self.vertices)
+        queue.enqueue([starting_vertex])
+        visited[starting_vertex-1] = True
+        
+        while queue.size() > 0:
+          current_path = queue.dequeue()
+          last_vertex = current_path[-1]
+          if last_vertex == destination_vertex:
+            return current_path
+          for vertex in self.vertices[last_vertex]:
+            if visited[vertex-1] == False:
+              visited[vertex-1] = True
+              new_path = current_path + [vertex]
+              queue.enqueue(new_path)
+
     def dfs(self, starting_vertex, destination_vertex):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
         depth-first order.
         """
-        pass  # TODO
-
-
-
+        
+        stack = Stack()
+        visited = [False] * len(self.vertices)
+        stack.push([starting_vertex])
+        visited[starting_vertex-1] = True
+        
+        while stack.size() > 0:
+          current_path = stack.pop()
+          last_vertex = current_path[-1]
+          if last_vertex == destination_vertex:
+            return current_path
+          for vertex in self.vertices[last_vertex]:
+            if visited[vertex-1] == False:
+              visited[vertex-1] = True
+              new_path = current_path + [vertex]
+              stack.push(new_path)
 
 
 if __name__ == '__main__':
